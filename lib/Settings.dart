@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:sociio/cacheBuilder/userProvider.dart';
+import 'package:sociio/models/user_model.dart';
 import 'login.dart';
 
 class Settings extends StatefulWidget {
@@ -9,7 +12,15 @@ class Settings extends StatefulWidget {
 }
 
 class _SettingsState extends State<Settings> {
-  bool _logoutClicked = false; 
+  bool _logoutClicked = false;
+  User? user;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final userProvider = Provider.of<UserProvider>(context);
+    user = userProvider.user;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,16 +49,16 @@ class _SettingsState extends State<Settings> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Center(
+                   Center(
                     child: Column(
                       children: [
                         CircleAvatar(
                           radius: 48,
-                          backgroundImage: AssetImage('assets/Images/avatar.png'),
+                          backgroundImage: NetworkImage(user!.uavatar),
                         ),
                         SizedBox(height: 20),
                         Text(
-                          'John Doe',
+                          '${user!.uname}',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 20,
@@ -55,7 +66,7 @@ class _SettingsState extends State<Settings> {
                         ),
                         SizedBox(height: 5),
                         Text(
-                          '@JohnDoe',
+                          '${user!.uid}',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 15,
@@ -65,7 +76,7 @@ class _SettingsState extends State<Settings> {
                         Padding(
                           padding: EdgeInsets.symmetric(horizontal: 18),
                           child: Text(
-                            'My name is Catherine. I like dancing in the rain and travelling all around the world.',
+                            '${user!.ubio}',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               color: Colors.white,

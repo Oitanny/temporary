@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:sociio/cacheBuilder/userProvider.dart';
+import 'models/user_model.dart';
 import 'recent.dart';
 import 'settings.dart'; 
 import 'notification.dart'; 
@@ -14,12 +17,22 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  User? user;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
   }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final userProvider = Provider.of<UserProvider>(context);
+    user = userProvider.user;
+    print(user);
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -38,13 +51,15 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   );
                 },
                 child: Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
-                  child: const CircleAvatar(
-                    backgroundImage: AssetImage('assets/Images/avatar.png'),
+                  padding:  EdgeInsets.only(right: 8.0),
+                  child:  CircleAvatar(
+                    backgroundImage: NetworkImage(user!.uavatar),
                   ),
                 ),
               ),
-              const Text('Good Morning, Karen'),
+              Text('Good Morning, '
+                  '${user!.uname}'
+              ),
             ],
           ),
         ),
@@ -132,9 +147,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       body: TabBarView(
         controller: _tabController,
         children: const [
-          Recent(),
-          Center(child: Text('Achievements tab content')),
-          Center(child: Text('Events tab content')),
+          Recent(showType: "all",),
+          Recent(showType: "achievement"),
+          Recent(showType: "event"),
         ],
       ),
     );

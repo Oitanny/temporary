@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'create_account.dart';
+import 'signup_form.dart';
 import 'login.dart';
 
 class Let_in extends StatelessWidget {
@@ -208,7 +208,7 @@ class Let_in extends StatelessWidget {
                 InkWell(
                   onTap: () {
                     Navigator.push(context,
-                        MaterialPageRoute(builder: (_) => const account()));
+                        MaterialPageRoute(builder: (_) => const SignUpForm()));
                   },
                   child: const Text(
                     ' Sign Up',

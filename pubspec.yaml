@@ -19,6 +19,13 @@ dependencies:
   cloud_firestore:
   firebase_storage: ^11.7.5
   fluttertoast:
+  file_picker: ^8.0.3
+  intl:
+  carousel_slider: ^4.2.1
+  intl_phone_number_input:
+  country_code_picker:
+  shared_preferences:
+  provider:
 
 dev_dependencies:
   flutter_test:

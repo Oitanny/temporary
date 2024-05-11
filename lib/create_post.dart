@@ -1,6 +1,13 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:file_picker/file_picker.dart';
+import 'package:intl/intl.dart';
+import 'package:sociio/Home.dart';
+
 
 
 class CreatePostScreen extends StatefulWidget {
@@ -11,10 +18,10 @@ class CreatePostScreen extends StatefulWidget {
 }
 
 class _CreatePostScreenState extends State<CreatePostScreen> {
-  List<String> categories = ['Recent', 'Achievements', 'Events'];
-  String selectedCategory = 'Recent';
+  List<String> categories = ['Achievements', 'Events']; //recent removed for the time being, recent logic to be implemented on homepage
+  String selectedCategory = 'Achievements';
   List<File> images = [];
-
+  List<String> urls=[];
   TextEditingController descriptionController = TextEditingController();
   TextEditingController hashtagsController = TextEditingController();
 
@@ -70,7 +77,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                       itemBuilder: (context, index) {
                         if (index == 0) {
                           return IconButton(
-                            onPressed: _pickImage,
+                            onPressed: _pickImages,
                             icon: const Icon(Icons.add),
                           );
                         }
@@ -79,7 +86,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                           child: Stack(
                             children: [
                               Image.file(
-                                images[index - 1],
+                                images[index - 1] as File,
                                 height: 100,
                                 width: 100,
                                 fit: BoxFit.cover,
@@ -129,44 +136,47 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 ),
               ),
               const SizedBox(height: 16.0),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  ElevatedButton(
-                    onPressed: _selectDate,
-                    child: Row(
-                      children: [
-                        const Icon(Icons.calendar_today,color: Colors.red, ),
-                        const SizedBox(width: 8.0),
-                        Text(selectedDate == null
-                            ? 'Select Date'
-                            : selectedDate!.toString().split(' ')[0],
-                             style: const TextStyle(color: Colors.white),
-                            ),
-                      ],
+              Visibility(
+                visible: selectedCategory=="Achievements"?false:true,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    ElevatedButton(
+                      onPressed: _selectDate,
+                      child: Row(
+                        children: [
+                          const Icon(Icons.calendar_today,color: Colors.red, ),
+                          const SizedBox(width: 8.0),
+                          Text(selectedDate == null
+                              ? 'Select Date'
+                              : selectedDate!.toString().split(' ')[0],
+                               style: const TextStyle(color: Colors.white),
+                              ),
+                        ],
+                      ),
                     ),
-                  ),
-                  ElevatedButton(
-                    onPressed: _selectTime,
-                    child: Row(
-                      children: [
-                        const Icon(Icons.access_time, color: Colors.red, ),
-                        const SizedBox(width: 8.0),
-                        Text(selectedTime == null
-                            ? 'Select Time'
-                            : selectedTime!.format(context),
-                             style: const TextStyle(color: Colors.white),
-                            ),
-                      ],
+                    ElevatedButton(
+                      onPressed: _selectTime,
+                      child: Row(
+                        children: [
+                          const Icon(Icons.access_time, color: Colors.red, ),
+                          const SizedBox(width: 8.0),
+                          Text(selectedTime == null
+                              ? 'Select Time'
+                              : selectedTime!.format(context),
+                               style: const TextStyle(color: Colors.white),
+                              ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
               const SizedBox(height: 16.0),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _uploadPost,
+                  onPressed: createPost,
                   style: ButtonStyle(
                       backgroundColor: MaterialStateProperty.all<Color>(Colors.red),
                     ),
@@ -180,15 +190,21 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     );
   }
 
-Future<void> _pickImage() async {
-  final picker = ImagePicker();
-  final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-  if (pickedFile != null) {
-    setState(() {
-      images.add(File(pickedFile.path));
-    });
+  Future<void> _pickImages() async {
+    final result = await FilePicker.platform.pickFiles(allowMultiple: true);
+    if (result != null) {
+      for (var pickedFile in result.paths) {
+        // Add the picked image to the images list for preview and upload
+        setState(() {
+          images.add(File(pickedFile!));
+        });
+        await uploadImages(images);
+      }
+    }
+    print("Picked Images are:\n");
   }
-}
+
+
 
   Future<void> _selectDate() async {
     final pickedDate = await showDatePicker(
@@ -201,6 +217,8 @@ Future<void> _pickImage() async {
     if (pickedDate != null) {
       setState(() {
         selectedDate = pickedDate;
+        print(selectedDate);
+
       });
     }
   }
@@ -214,6 +232,7 @@ Future<void> _pickImage() async {
     if (pickedTime != null) {
       setState(() {
         selectedTime = pickedTime;
+        print(selectedTime);
       });
     }
   }
@@ -257,6 +276,81 @@ Future<void> _pickImage() async {
       images.clear();
     });
   }
+
+  Future<List<String>> uploadImages(List<File> images) async {
+    final storage = FirebaseStorage.instance;
+    final imageUrls = <String>[];
+
+    for (final image in images) {
+      final reference = storage.ref().child('post_images/test/${image.path.split('/').last}');
+      final uploadTask = reference.putFile(File(image.path));
+      final snapshot = await uploadTask.whenComplete(() => null);
+      final url = await snapshot.ref.getDownloadURL();
+      imageUrls.add(url);
+    }
+
+    return imageUrls;
+  }
+
+  Future<void> createPost() async{
+    final firestore = FirebaseFirestore.instance;
+    final postsCollection = firestore.collection('posts'); // Replace 'posts' with your collection name
+
+    final timestamp = FieldValue.serverTimestamp(); // Server-side timestamp
+
+    try{
+    urls=await uploadImages(images);
+
+    final post = {
+        'date': selectedCategory=="Achievements"?(DateFormat('dd/MM/yyyy').format(DateTime.now()).toString()):(DateFormat('dd/MM/yyyy').format(selectedDate!).toString()),
+        'description': descriptionController.text,
+        'hashtags': hashtagsController.text,
+        'images': urls,
+        'posted_by': "test",
+        'posted_on': timestamp,
+        'time':  selectedCategory=="Achievements"? ("${TimeOfDay.now().hour}:${TimeOfDay.now().minute}"): ("${selectedTime?.hour}:${selectedTime?.minute}"),
+      "type": selectedCategory=="Achievements"? "achievement":"event",
+      "likes":0,
+      "comments":[],
+    };
+
+      await postsCollection.add(post).then((value){
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Posted Uploaded Successfully!", style: TextStyle(color: Colors.white),), backgroundColor: Colors.black, ));
+        Navigator.push(context, MaterialPageRoute(builder: (context)=>HomeScreen()));
+      });
+    }
+  catch(e){
+    print("Error occured: \n${e}" );
+  }
+
+
+  }
+
+
+// Future<void> uploadImageToFirebase(PickedFile pickedFile) async {
+  //   FirebaseStorage storage = FirebaseStorage.instance;
+  //   final imageUrls = <String>[];
+  //
+  //   try {
+  //
+  //     final imageRef = storage.ref().child('images/test/${pickedFile.path}'); // Create a reference
+  //     final uploadTask = imageRef.putFile(File(pickedFile.path)); // Upload the file
+  //     final snapshot = await uploadTask.whenComplete(() => null); // Wait for completion
+  //     final downloadUrl = await snapshot.ref.getDownloadURL(); // Get the download URL
+  //
+  //     // setState(() {
+  //     //   images.add(File(pickedFile.path) as PickedFile); // Add the local file path for preview
+  //     // });
+  //
+  //     // You can now use the downloadUrl (e.g., display the image or store it)
+  //     print('Image uploaded successfully! Download URL: $downloadUrl');
+  //   } on FirebaseException catch (e) {
+  //     // Handle errors appropriately (e.g., show a snackbar)
+  //     print('Error uploading image: ${e.code} - ${e.message}');
+  //   }
+  // }
+
+
 }
 
 void main() {

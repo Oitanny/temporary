@@ -1,17 +1,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import "package:flutter/material.dart";
+import 'package:sociio/screens/profile_fill_form.dart';
 import 'login.dart';
 import 'navigation.dart';
 
-class account extends StatefulWidget {
-  const account({super.key});
+class SignUpForm extends StatefulWidget {
+  const SignUpForm({super.key});
 
   @override
-  State<account> createState() => _accountState();
+  State<SignUpForm> createState() => _SignUpFormState();
 }
 
-class _accountState extends State<account> {
+class _SignUpFormState extends State<SignUpForm> {
   var emailText = TextEditingController();
   var passText = TextEditingController();
   final _formKey = GlobalKey<FormState>();
@@ -185,7 +186,7 @@ class _accountState extends State<account> {
                             context,
                             MaterialPageRoute(
                                 builder: (_) =>
-                                const Sociio()),
+                                 ProfileFillForm(email: emailText.text)),
                           );
                         } on FirebaseAuthException catch (exc){
                           ScaffoldMessenger.of(context).showSnackBar(

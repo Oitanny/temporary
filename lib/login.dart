@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'create_account.dart';
+import 'signup_form.dart';
 import 'navigation.dart';
 
 class Login extends StatefulWidget {
@@ -286,7 +286,7 @@ class _LoginState extends State<Login> {
                     ),
                     InkWell(
                       onTap: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => const account()));
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => const SignUpForm()));
                       },
                       child: const Text(
                         ' Sign Up',
