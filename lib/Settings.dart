@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sociio/cacheBuilder/signedInUser_cache.dart';
 import 'package:sociio/cacheBuilder/userProvider.dart';
 import 'package:sociio/models/user_model.dart';
 import 'login.dart';
@@ -20,6 +21,7 @@ class _SettingsState extends State<Settings> {
     super.didChangeDependencies();
     final userProvider = Provider.of<UserProvider>(context);
     user = userProvider.user;
+    print("User: ${user}");
   }
 
   @override
@@ -124,15 +126,18 @@ class _SettingsState extends State<Settings> {
                     child: ElevatedButton(
                       onPressed: _logoutClicked
                           ? null 
-                          : () {
+                          : () async{
                               setState(() {
                                 _logoutClicked = true;
                               });
-                              Navigator.pushAndRemoveUntil(
-                                context,
-                                MaterialPageRoute(builder: (context) => Login()),
-                                (route) => false,
-                              );
+                              await clearSignedInUser().then((value) {
+                                Navigator.pushAndRemoveUntil(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => Login()),
+                                      (route) => false,
+                                );
+                              });
+
                             },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _logoutClicked ? Colors.red : const Color(0xFFF05D5E).withOpacity(0.60),

@@ -311,7 +311,9 @@ class _ProfileFillFormState extends State<ProfileFillForm> {
 
       // Add user data to Firestore (assuming you have a postsCollection reference)
       await postsCollection.add(user.toMap()).then((value) async {
-        await storeSignedInUser(user);
+        await storeSignedInUser(user).then((value) {
+
+        });
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

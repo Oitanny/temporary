@@ -29,7 +29,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   void didChangeDependencies() {
     super.didChangeDependencies();
     final userProvider = Provider.of<UserProvider>(context);
-    user = userProvider.user;
+    user = userProvider.user!=null: userProvider.user? User();
     print(user);
   }
 
