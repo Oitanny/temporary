@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sociio/cacheBuilder/message_cache.dart';
 import 'package:sociio/cacheBuilder/signedInUser_cache.dart';
 import 'package:sociio/cacheBuilder/userProvider.dart';
 import 'package:sociio/models/user_model.dart';
@@ -130,12 +131,15 @@ class _SettingsState extends State<Settings> {
                               setState(() {
                                 _logoutClicked = true;
                               });
-                              await clearSignedInUser().then((value) {
-                                Navigator.pushAndRemoveUntil(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => Login()),
-                                      (route) => false,
-                                );
+                              await clearSignedInUser().then((value) async{
+                                await ChatCacheService().clearCacheMessages().then((value) {
+                                  Navigator.pushAndRemoveUntil(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => Login()),
+                                        (route) => false,
+                                  );
+                                });
+
                               });
 
                             },

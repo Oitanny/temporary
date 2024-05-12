@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:sociio/cacheBuilder/message_cache.dart';
 import 'package:sociio/chats/services/chat_service.dart';
 import 'package:sociio/models/chat_model.dart';
 import 'package:sociio/models/user_model.dart';
@@ -112,6 +113,11 @@ class _ChatRoomState extends State<ChatRoom> {
                   icon: const Icon(Icons.send),
                   onPressed: () {
                     ChatService().sendMessage(chatId!, widget.sender.uid, _messageController.text, widget.receiver.uid);
+                    ChatCacheService().saveLatestMessageCache(
+                      widget.receiver.uid, widget.sender.uid, _messageController.text, );
+
+                    // Save the message cache
+                    print(ChatCacheService().getAllLatestMessages());
                     // Call your send message function (replace with actual logic)
                     _messageController.clear();
                   },

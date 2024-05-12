@@ -13,6 +13,7 @@ class ChatMessage {
     required this.timestamp,
   });
 
+
   Map<String, dynamic> toMap() {
     return {
       'senderId': senderId,
@@ -30,6 +31,24 @@ class ChatMessage {
       timestamp: (data['timestamp'] as Timestamp)!.toDate(), // Use ?. for null-safe conversion
     );
   }
+  factory ChatMessage.fromJson(Map<String, dynamic> json) {
+    return ChatMessage(
+      senderId: json['currentUserID'],
+      recipientId: json['otherUserID'],
+      message: json['latestMessage'],
+      timestamp: DateTime.parse(json['timestamp']),
+    );
+  }
 
+  Map<String, dynamic> toJson() {
+    return {
+      'currentUserID': senderId,
+      'otherUserID': recipientId,
+      'latestMessage': message,
+      'timestamp': timestamp.toIso8601String(), // Convert DateTime to a string
+    };
+  }
 
 }
+
+
