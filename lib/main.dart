@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:sociio/Home.dart';
 import 'package:sociio/cacheBuilder/userProvider.dart';
 import 'package:sociio/models/user_model.dart';
+import 'package:sociio/navigation.dart';
 import 'cacheBuilder/signedInUser_cache.dart';
 import 'get_started.dart';
 import 'dart:async';
@@ -20,11 +21,13 @@ void main() async {
           projectId: "sociio-7b374"
       )
   );
-  var user = await getSignedInUser();
+  User? user = await getSignedInUser();
+
 
   runApp(
-    Provider<UserProvider>(
-      create: (_) => UserProvider(user: user, child: HomeScreen(),),
+
+      ChangeNotifierProvider<UserProvider>(
+      create: (_) => UserProvider(user: user),
       child: MyApp(),
     ),
 
@@ -119,7 +122,7 @@ class _MyHomePageState extends State<MyHomePage> {
       } else {
         // Handle no user scenario
         Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (_) => const HomeScreen()));
+            context, MaterialPageRoute(builder: (_) => const Sociio()));
       }
     });
   }

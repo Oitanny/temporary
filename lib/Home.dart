@@ -29,7 +29,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   void didChangeDependencies() {
     super.didChangeDependencies();
     final userProvider = Provider.of<UserProvider>(context);
-    user = userProvider.user!=null: userProvider.user? User();
+    user = userProvider.user;
     print(user);
   }
 
@@ -53,12 +53,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 child: Padding(
                   padding:  EdgeInsets.only(right: 8.0),
                   child:  CircleAvatar(
-                    backgroundImage: NetworkImage(user!.uavatar),
+                    backgroundImage: NetworkImage(user==null?"https://t4.ftcdn.net/jpg/03/40/12/49/360_F_340124934_bz3pQTLrdFpH92ekknuaTHy8JuXgG7fi.jpg" :user!.uavatar),
                   ),
                 ),
               ),
               Text('Good Morning, '
-                  '${user!.uname}'
+                  '${user==null?"User":user!.uname}'
               ),
             ],
           ),

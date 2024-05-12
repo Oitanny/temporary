@@ -2,8 +2,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:provider/provider.dart';
+import 'package:sociio/cacheBuilder/signedInUser_cache.dart';
+import 'package:sociio/cacheBuilder/userProvider.dart';
+import 'package:sociio/models/user_model.dart';
 import 'signup_form.dart';
 import 'navigation.dart';
+import 'package:sociio/models/user_model.dart' as UserModel;
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -184,27 +189,28 @@ class _LoginState extends State<Login> {
 
                       print("Email: $uEmail, Password: $upass");
                       if (_formKey.currentState!.validate()) {
-                        try{
-                        FirebaseAuth auth=FirebaseAuth.instance;
-                        FirebaseFirestore firestoreInstance=FirebaseFirestore.instance;
-                        var response=await auth.signInWithEmailAndPassword(email: uEmail, password: upass);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) =>
-                              const Sociio()),
-                        );
-                      } on FirebaseAuthException catch (exc){
-                          ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(exc.toString())));
-                        print("Error in sign in: ${exc}");
-
-                      }
-                      catch(e){
-                        ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(e.toString())));
-                        print("Error in: ${e}");
-                      }
+                        loginUser(context, uEmail, upass);
+                      //  try{
+                      //   FirebaseAuth auth=FirebaseAuth.instance;
+                      //   FirebaseFirestore firestoreInstance=FirebaseFirestore.instance;
+                      //   var response=await auth.signInWithEmailAndPassword(email: uEmail, password: upass);
+                      //   Navigator.push(
+                      //     context,
+                      //     MaterialPageRoute(
+                      //         builder: (_) =>
+                      //         const Sociio()),
+                      //   );
+                      // } on FirebaseAuthException catch (exc){
+                      //     ScaffoldMessenger.of(context).showSnackBar(
+                      //     SnackBar(content: Text(exc.toString())));
+                      //   print("Error in sign in: ${exc}");
+                      //
+                      // }
+                      // catch(e){
+                      //   ScaffoldMessenger.of(context).showSnackBar(
+                      //       SnackBar(content: Text(e.toString())));
+                      //   print("Error in: ${e}");
+                      // }
 
                     }},
                     child: const Text(
@@ -314,4 +320,63 @@ class _LoginState extends State<Login> {
     RegExp regex = RegExp(r"@[Bb][Mm][Uu]\.edu\.in$");
     return regex.hasMatch(email);
   }
+
+  Future<void> loginUser(BuildContext context, String email, String password) async {
+    try {
+      FirebaseAuth auth = FirebaseAuth.instance;
+      FirebaseFirestore firestoreInstance = FirebaseFirestore.instance;
+      print("🔴🔴🔴🔴");
+
+      var response = await auth.signInWithEmailAndPassword(email: email, password: password).then((value) async {
+        var userDoc = await firestoreInstance.collection('users').where('uemail', isEqualTo: email).get();
+        print("🔴🔴🔴🔴");
+
+        print(userDoc);
+        if (userDoc.docs.isNotEmpty) {
+          var userData = userDoc.docs.first.data();
+          print("USER DATA:\n${userData}\n\n");
+          // Create a User object from the fetched data
+          UserModel.User user = UserModel.User(
+            uid: userData['uid'] ?? '',
+            uname: userData['uname'] ?? '',
+            uemail: userData['uemail'] ?? '',
+            uphone: userData['uphone'] ?? '',
+            ugender: userData['ugender'] ?? '',
+            ubio: userData['ubio'] ?? '',
+            uavatar: userData['uavatar'] ?? '',
+          );
+          // Update UserProvider with the signed-in user
+
+          await storeSignedInUser(user).then((value) async{
+            Provider.of<UserProvider>(context, listen: false).updateUser(user);
+
+            // Update UserProvider with the signed-in user
+          });
+        } else {
+          print("User not found in database");
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Login Successful!"),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.push(context, MaterialPageRoute(builder: (context) => Sociio()));
+
+      });
+
+      // Fetch user details from Firestore
+    } catch (e) {
+      // Handle errors appropriately (e.g., display an error message to the user)
+      print("Error logging in: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Login Failed. Please check your credentials."),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+
 }

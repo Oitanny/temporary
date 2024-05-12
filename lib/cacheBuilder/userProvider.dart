@@ -1,22 +1,16 @@
-import 'package:flutter/cupertino.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter/material.dart';
 import 'package:sociio/models/user_model.dart';
 
-class UserProvider extends InheritedWidget {
-  final User? user;
+class UserProvider extends ChangeNotifier {
+  User? _user;
 
-  const UserProvider({Key? key, required this.user, required Widget child}) : super(key: key, child: child);
+  User? get user => _user;
 
-  static UserProvider of(BuildContext context) {
-    final provider = Provider.of<UserProvider>(context);
-    if (provider == null) {
-      throw Exception('UserProvider not found in context');
-    }
-    return provider;
-  }
+  UserProvider({User? user}) : _user = user;
 
-  @override
-  bool updateShouldNotify(UserProvider oldWidget) {
-    return user != oldWidget.user;
+  void updateUser(User newUser) {
+    _user = newUser;
+    notifyListeners();
   }
 }
+

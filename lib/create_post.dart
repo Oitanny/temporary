@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:sociio/Home.dart';
+import 'package:sociio/navigation.dart';
 
 
 
@@ -316,7 +317,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
       await postsCollection.add(post).then((value){
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Posted Uploaded Successfully!", style: TextStyle(color: Colors.white),), backgroundColor: Colors.black, ));
-        Navigator.push(context, MaterialPageRoute(builder: (context)=>HomeScreen()));
+        Navigator.push(context, MaterialPageRoute(builder: (context)=>Sociio()));
       });
     }
   catch(e){

@@ -56,11 +56,11 @@ class _SettingsState extends State<Settings> {
                       children: [
                         CircleAvatar(
                           radius: 48,
-                          backgroundImage: NetworkImage(user!.uavatar),
+                          backgroundImage: NetworkImage(user==null?"https://t4.ftcdn.net/jpg/03/40/12/49/360_F_340124934_bz3pQTLrdFpH92ekknuaTHy8JuXgG7fi.jpg":user!.uavatar),
                         ),
                         SizedBox(height: 20),
                         Text(
-                          '${user!.uname}',
+                          '${user==null?"Test Username":user!.uname}',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 20,
@@ -68,7 +68,7 @@ class _SettingsState extends State<Settings> {
                         ),
                         SizedBox(height: 5),
                         Text(
-                          '${user!.uid}',
+                          '${user==null?"Test UserID":user!.uid}',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 15,
@@ -78,7 +78,7 @@ class _SettingsState extends State<Settings> {
                         Padding(
                           padding: EdgeInsets.symmetric(horizontal: 18),
                           child: Text(
-                            '${user!.ubio}',
+                            '${user==null?"Test User Bio":user!.ubio}',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               color: Colors.white,

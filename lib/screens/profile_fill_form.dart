@@ -6,7 +6,10 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
+import 'package:provider/provider.dart';
 import 'package:sociio/cacheBuilder/signedInUser_cache.dart';
+import 'package:sociio/cacheBuilder/userProvider.dart';
+import 'package:sociio/navigation.dart';
 
 import '../Home.dart';
 import '../models/user_model.dart';
@@ -311,8 +314,10 @@ class _ProfileFillFormState extends State<ProfileFillForm> {
 
       // Add user data to Firestore (assuming you have a postsCollection reference)
       await postsCollection.add(user.toMap()).then((value) async {
-        await storeSignedInUser(user).then((value) {
+        await storeSignedInUser(user).then((value) async{
+          Provider.of<UserProvider>(context, listen: false).updateUser(user);
 
+          // Update UserProvider with the signed-in user
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -321,7 +326,7 @@ class _ProfileFillFormState extends State<ProfileFillForm> {
             backgroundColor: Colors.black,
           ),
         );
-        Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen()));
+        Navigator.push(context, MaterialPageRoute(builder: (context) => Sociio()));
       });
     } catch (e) {
       // Handle errors appropriately (e.g., display an error message to the user)
@@ -331,6 +336,7 @@ class _ProfileFillFormState extends State<ProfileFillForm> {
 
 
   }
+
 
 }
 
