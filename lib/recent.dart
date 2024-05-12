@@ -47,7 +47,7 @@ class _RecentState extends State<Recent> {
       } else{
         filteredPosts=allPosts;
       }
-      return ListView.builder(
+      return  filteredPosts.length==0?Container(padding: EdgeInsets.all(20), child: Center(child: Text("No Posts Found for ${widget.showType}")),): ListView.builder(
         itemCount: filteredPosts.length,
         itemBuilder: (context, index) {
           return PostWidget(post: filteredPosts[index]);

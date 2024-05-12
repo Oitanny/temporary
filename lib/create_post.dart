@@ -6,7 +6,10 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:sociio/Home.dart';
+import 'package:sociio/cacheBuilder/userProvider.dart';
+import 'package:sociio/models/user_model.dart';
 import 'package:sociio/navigation.dart';
 
 
@@ -28,7 +31,15 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
   DateTime? selectedDate;
   TimeOfDay? selectedTime;
+  User? user;
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final userProvider = Provider.of<UserProvider>(context);
+    user = userProvider.user;
+    print(user);
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -307,7 +318,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         'description': descriptionController.text,
         'hashtags': hashtagsController.text,
         'images': urls,
-        'posted_by': "test",
+        'posted_by': user?.uid,
         'posted_on': timestamp,
         'time':  selectedCategory=="Achievements"? ("${TimeOfDay.now().hour}:${TimeOfDay.now().minute}"): ("${selectedTime?.hour}:${selectedTime?.minute}"),
       "type": selectedCategory=="Achievements"? "achievement":"event",
