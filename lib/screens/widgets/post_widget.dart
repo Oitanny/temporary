@@ -2,9 +2,11 @@ import 'package:carousel_slider/carousel_controller.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/widgets.dart';
 import 'package:sociio/models/post_model.dart';
 import 'package:flutter/material.dart';
 import 'package:sociio/models/user_model.dart';
+import 'package:sociio/userProfile_view.dart';
 
 class PostWidget extends StatefulWidget {
   final Post post;
@@ -76,11 +78,16 @@ class _PostWidgetState extends State<PostWidget> {
               children: [
                 Row(
                   children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(20.0),
-                      child: Image.network(
-                          // user==null?"assets/Images/avatar.png":
-                          user!.uavatar, height: 40, width: 40),
+                    GestureDetector(
+                      onTap: (){
+                        Navigator.push(context, MaterialPageRoute(builder: (context)=>UserProfileView(relatedUser: user!)));
+                      },
+                      child: CircleAvatar(
+                        backgroundImage: NetworkImage(
+                            // user==null?"assets/Images/avatar.png":
+                            user!.uavatar),
+                        radius: 20,
+                      ),
                     ),
                     SizedBox(width: 8),
                     Column(

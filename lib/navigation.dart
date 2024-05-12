@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'Home.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
-import 'chat.dart';
+import 'chats/chat.dart';
 import 'func.dart';
 
 class Sociio extends StatefulWidget {

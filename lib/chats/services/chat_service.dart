@@ -9,7 +9,7 @@ class ChatService {
   // Subcollection name for messages within a chat
   static const String messagesSubcollection = 'messages';
 
-  Future<void> sendMessage(String chatId, String senderId, String message) async {
+  Future<void> sendMessage(String chatId, String senderId, String message, String receiverId) async {
     final messageRef = _firestore
         .collection(chatsCollection)
         .doc(chatId)
@@ -19,6 +19,7 @@ class ChatService {
     await messageRef.set({
       'senderId': senderId,
       'message': message,
+      'receiverId': receiverId ,
       'timestamp': DateTime.now(),
     });
   }
@@ -30,5 +31,12 @@ class ChatService {
         .collection(messagesSubcollection)
         .orderBy('timestamp', descending: true)
         .snapshots();
+  }
+
+  String getChatRoomId(String senderId, String receiverId){
+    List<String> ids=[senderId, receiverId];
+    ids.sort();
+    return ids.join("_");
+
   }
 }
