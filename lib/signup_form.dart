@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import "package:flutter/material.dart";
@@ -5,6 +7,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sociio/screens/profile_fill_form.dart';
 import 'login.dart';
 import 'navigation.dart';
+import 'package:http/http.dart';
 
 class SignUpForm extends StatefulWidget {
   const SignUpForm({super.key});
@@ -18,6 +21,8 @@ class _SignUpFormState extends State<SignUpForm> {
   var passText = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool? isChecked = false;
+  bool? isValid = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -59,6 +64,7 @@ class _SignUpFormState extends State<SignUpForm> {
                       if (!isBMUEmail(value)) {
                         return 'Email must end with @bmu.edu.in';
                       }
+
                       return null;
                     },
                     decoration: InputDecoration(
@@ -178,6 +184,11 @@ class _SignUpFormState extends State<SignUpForm> {
                       String upass = passText.text;
 
                       print("Email: $uEmail, Password: $upass");
+                      isValid=await checkIfEmailValid(uEmail);
+                      if(isValid==false){
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text( "Invalid Email, Please Enter a Valid Email")));
+                      }
+
                       if (_formKey.currentState!.validate()) {
                         try{
                           FirebaseAuth auth=FirebaseAuth.instance;
@@ -261,7 +272,6 @@ class _SignUpFormState extends State<SignUpForm> {
                       ),
                     ),
                     onPressed: ()async {
-
                       print("Continue with Google");
                       String x= await signInWithGoogle();
                       print("Value of X:$x");
@@ -361,5 +371,80 @@ class _SignUpFormState extends State<SignUpForm> {
     return gUser.email;
 
   }
+
+
+
+  Future<bool> checkIfEmailValid(String email) async {
+    const String baseUrl = 'https://api.proofy.io/verifyaddr';
+    const String resultUrl="https://api.proofy.io/getresult";
+    const String apiKey = 'OqB6ywiOuUWQMfNoR797'; // Replace with your actual API key (avoid hardcoding)
+    const int appId = 61951; // Replace with your actual application ID (avoid hardcoding)
+    int? cid;
+    var url = Uri.parse('$baseUrl?aid=$appId&key=$apiKey&email=$email');
+    bool works=false;
+    try {
+      final response = await get(url);
+      final statusCode = response.statusCode;
+
+      if (statusCode == 200) {
+        final  Map<String,dynamic> data = jsonDecode(response.body) as Map<String, dynamic>;
+        cid=data['cid'];
+
+        if (data.containsKey('error')) {
+          print('Error: ${data['message']}');
+          return false; // Email validation failed due to API error
+        }
+        // else if (data.containsKey('checked') && data['checked']) {
+        //   final result = data['result'] as List<dynamic>;
+        //   if (result.isNotEmpty) {
+        //     final emailStatus = result[0]['status'] as int;
+        //     // Check for deliverable status (you can adjust the criteria based on your needs)
+        //     return emailStatus == 1;
+        //   } else {
+        //     print('Email verification result unavailable');
+        //     return false; // Inconclusive email validation
+        //   }
+        // }
+        // else {
+        //   print('Unexpected response format');
+        //   return false; // Email validation failed due to unexpected response
+        // }
+      } else {
+        print('Error: API request failed with status code $statusCode');
+        return false; // Email validation failed due to network or API error
+      }}catch(e){
+      print(e);
+    }
+      url = Uri.parse('$resultUrl?aid=$appId&key=$apiKey&cid=$cid');
+      try {
+        final response = await get(url);
+        final statusCode = response.statusCode;
+
+        if (statusCode == 200) {
+          final Map<String, dynamic> data2 = jsonDecode(response.body) as Map<String, dynamic>;
+          final resultList = data2['result'] as List<dynamic>;
+          if (resultList.isNotEmpty) {
+            // Access the first element (assuming there's only one email)
+            final emailData = resultList[0] as Map<String, dynamic>;
+
+            // Extract and print the statusName
+            final statusName = emailData['statusName'] as String;
+
+            print(statusName); // Output: undeliverable
+            if(statusName=="deliverable"){
+              return true;
+            }
+          } else {
+            print('No results found in the JSON object');
+          }
+        }
+
+        } on Exception catch (e) {
+      print('Error: $e');
+    }
+    return false; // Email validation failed due to a general error
+
+  }
+
 
 }
