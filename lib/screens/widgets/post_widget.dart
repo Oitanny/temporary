@@ -27,7 +27,8 @@ class _PostWidgetState extends State<PostWidget> {
   bool _isExpanded = false;
   bool saved=false;
   int _currentImageIndex = 0;
-
+  bool liked2=false;
+  int likeCount=0;
   @override
   void initState() {
     super.initState();
@@ -39,6 +40,7 @@ class _PostWidgetState extends State<PostWidget> {
     }).catchError((error) {
       print('Error fetching user: $error');
     });
+    likeCount=post.likes;
   }
 
 
@@ -60,7 +62,6 @@ class _PostWidgetState extends State<PostWidget> {
 
   Widget _buildPostWidget() {
     bool liked = Provider.of<LikeState>(context).isLiked(post.title+post.postedBy);
-
           return Container(
             padding: const EdgeInsets.all(12.0),
             margin: EdgeInsets.all( 30),
@@ -263,7 +264,14 @@ class _PostWidgetState extends State<PostWidget> {
                         children: [
                           IconButton(
                             onPressed: () async{
-
+                              setState(() {
+                                liked2=!liked2;
+                                if(liked2==false && (likeCount-1)>=0){
+                                  likeCount=post.likes-1;
+                                } else{
+                                  likeCount=post.likes+1;
+                                }
+                              });
                               bool newLiked = !liked;
                               Provider.of<LikeState>(context, listen: false).setLiked(post.title+post.postedBy, newLiked);
 
@@ -277,9 +285,7 @@ class _PostWidgetState extends State<PostWidget> {
                             padding: const EdgeInsets.all(0.0),
                           ),
                           Text(
-
-                              liked==true?(post.likes+1).toString():
-                          post.likes.toString()
+                            likeCount.toString()
                           ),
                         ],
                       ),

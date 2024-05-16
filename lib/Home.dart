@@ -57,8 +57,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   ),
                 ),
               ),
-              Text('Good Morning, '
-                  '${user==null?"User":user!.uname}'
+              Text('Hello👋, '
+                  '${user==null?"User":user!.uname}', style:TextStyle(fontSize: 19)
               ),
             ],
           ),
