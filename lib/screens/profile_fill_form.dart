@@ -1,3 +1,5 @@
+
+
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -16,7 +18,8 @@ import '../models/user_model.dart';
 
 class ProfileFillForm extends StatefulWidget {
   final String email;
-  ProfileFillForm({required this.email});
+  final bool isEditing;
+  ProfileFillForm({required this.email, required this.isEditing});
   @override
   _ProfileFillFormState createState() => _ProfileFillFormState();
 }
@@ -26,27 +29,43 @@ class _ProfileFillFormState extends State<ProfileFillForm> {
   final TextEditingController _userIdController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneNumberController = TextEditingController();
-  final TextEditingController _bioController = TextEditingController();
+  TextEditingController _bioController = TextEditingController(text:"Nothing");
   File? image=null;
   String? _selectedGender;
   String _selectedCountry = 'Select Country';
   String _selectedCountryCode = '';
+  String? imageUrl;
 
-
+  User? user;
   @override
 
   void initState() {
     // TODO: implement initState
+
     super.initState();
     _emailController.text=widget.email;
-  }
 
+  }
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final userProvider = Provider.of<UserProvider>(context);
+    user = userProvider.user;
+    if(widget.isEditing==true){
+      setState(() {
+        _bioController=TextEditingController(text: user!.ubio);
+      });
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text("Fill Your Profile", style: TextStyle(color: Colors.white, fontSize: 17),),
-        leading: IconButton(onPressed: (){}, icon: Icon(Icons.arrow_back_rounded, color: Colors.white,),),
+        leading: IconButton(onPressed: (){
+          if(widget.isEditing==true){
+            Navigator.pop(context);
+          }
+        }, icon: Icon(Icons.arrow_back_rounded, color: Colors.white,),),
       ),
       body: SingleChildScrollView(
         child: Container(
@@ -65,14 +84,20 @@ class _ProfileFillFormState extends State<ProfileFillForm> {
                   },
                   child: Stack(
                     children: [
-                      CircleAvatar(
-                        radius: 50,
-                        backgroundColor: Colors.grey,
-                        backgroundImage: image == null ? AssetImage("assets/Images/no_image.jpg") : FileImage(image!) as ImageProvider<Object>?,
+                      widget.isEditing==true?
+                  CircleAvatar(
+                  radius: 50,
+                    backgroundColor: Colors.grey,
+                    backgroundImage: image == null ? NetworkImage(user!.uavatar) : FileImage(image!) as ImageProvider<Object>?,
+                  )
+                          :
+                  CircleAvatar(
+                  radius: 50,
+                    backgroundColor: Colors.grey,
+                    backgroundImage: NetworkImage(user!.uavatar),
+                  ),
 
 
-
-                      ),
                        Positioned(
                           right: 0,
                           bottom: 0,
@@ -93,7 +118,8 @@ class _ProfileFillFormState extends State<ProfileFillForm> {
                   decoration: InputDecoration(
                     fillColor: const Color.fromRGBO(255, 255, 255, 0.3),
                     filled: true,
-                    hintText: 'Username',
+                    enabled: widget.isEditing==true?false:true,
+                    hintText: widget.isEditing==true?user!.uname:'Username',
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(13),
                       borderSide: const BorderSide(
@@ -113,12 +139,10 @@ class _ProfileFillFormState extends State<ProfileFillForm> {
                 TextFormField(
                   controller: _userIdController,
                   decoration: InputDecoration(
+                    enabled: widget.isEditing==true?false:true,
+                    hintText: widget.isEditing==true?user!.uid:'User ID',
                     filled: true,
                     fillColor: const Color.fromRGBO(255, 255, 255, 0.3),
-
-                    hintText: 'User ID',
-
-
                     enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(13),
                         borderSide: const BorderSide(
@@ -135,7 +159,8 @@ class _ProfileFillFormState extends State<ProfileFillForm> {
                 TextFormField(
                   controller: _emailController,
                   decoration: InputDecoration(
-                    hintText: 'Email',
+                    enabled: widget.isEditing==true?false:true,
+                    hintText: widget.isEditing==true?user!.uemail: 'Email',
                     fillColor: const Color.fromRGBO(255, 255, 255, 0.3),
                     filled: true,
                     enabledBorder: OutlineInputBorder(
@@ -156,12 +181,13 @@ class _ProfileFillFormState extends State<ProfileFillForm> {
                 SizedBox(height: 20),
                 TextFormField(
                   controller: _bioController,
+
                   decoration: InputDecoration(
-                    hintText: 'Profile Bio',
+                    hintText:'Profile Bio',
                     fillColor: const Color.fromRGBO(255, 255, 255, 0.3),
                     filled: true,
-                    enabledBorder: OutlineInputBorder(
 
+                    enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(13),
                       borderSide: const BorderSide(
                         color: Color(0xdcdcdcdc),
@@ -176,43 +202,43 @@ class _ProfileFillFormState extends State<ProfileFillForm> {
                   ),
                 ),
                 SizedBox(height: 20),
-            Container(
-              padding: EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Color.fromRGBO(255, 255, 255, 0.3),
-                border: Border.fromBorderSide(
-                    BorderSide(
-                  color: Color(0xdcdcdcdc),
-                ),
-                ),
-                borderRadius: BorderRadius.circular(13)
-
-
-          ),
-              child: Row(
-                children: [
-
-                  Expanded(
-                    child: InternationalPhoneNumberInput(
-                      onInputChanged: (PhoneNumber number) {
-                        _phoneNumberController.text=number.phoneNumber.toString();
-                        // Handle changes to the phone number (optional)
-                      },
-                      // selectorButtonAsPrefixIcon: true,
-                      hintText: 'Enter phone number',
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter a phone number';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
-                SizedBox(height: 20),
-
+          //   Container(
+          //     padding: EdgeInsets.all(10),
+          //     decoration: BoxDecoration(
+          //       color: Color.fromRGBO(255, 255, 255, 0.3),
+          //       border: Border.fromBorderSide(
+          //           BorderSide(
+          //         color: Color(0xdcdcdcdc),
+          //       ),
+          //       ),
+          //       borderRadius: BorderRadius.circular(13)
+          //
+          //
+          // ),
+          //     child: Row(
+          //       children: [
+          //
+          //         Expanded(
+          //           child: InternationalPhoneNumberInput(
+          //             onInputChanged: (PhoneNumber number) {
+          //               _phoneNumberController.text=number.phoneNumber.toString();
+          //               // Handle changes to the phone number (optional)
+          //             },
+          //             // selectorButtonAsPrefixIcon: true,
+          //             hintText: 'Enter phone number',
+          //             validator: (value) {
+          //               if (value == null || value.isEmpty) {
+          //                 return 'Please enter a phone number';
+          //               }
+          //               return null;
+          //             },
+          //           ),
+          //         ),
+          //       ],
+          //     ),
+          //   ),
+          //       SizedBox(height: 20),
+                if(widget.isEditing==false)
                 DropdownButtonFormField(
                   value: _selectedGender,
                   onChanged: (value) {
@@ -251,11 +277,42 @@ class _ProfileFillFormState extends State<ProfileFillForm> {
                 ),
                 SizedBox(height: 20),
                 ElevatedButton(
-                  onPressed: () {
-                    createUser();
+                  onPressed: ()async {
+                    User? newUser;
+                    var imageUrl;
+                    if(widget.isEditing==true){
+
+                      if(image!=null && _bioController.text!="Nothing"){
+                        imageUrl= await uploadImages(image!);
+                         newUser=User(uid: user!.uid, uname: user!.uname, uemail: user!.uemail, uphone: user!.uphone, ugender: user!.ugender, ubio: _bioController.text, uavatar:imageUrl);
+                        updateUserAvatar(imageUrl);
+                      }
+                      else if(image!=null && _bioController.text=="Nothing"){
+                        imageUrl= await uploadImages(image!);
+                        newUser=User(uid: user!.uid, uname: user!.uname, uemail: user!.uemail, uphone: user!.uphone, ugender: user!.ugender, ubio: user!.ubio, uavatar:imageUrl);
+                        updateUserAvatar(imageUrl);
+
+                      }
+                      else{
+                        updateUserBio(_bioController.text);
+                         newUser=User(uid: user!.uid, uname: user!.uname, uemail: user!.uemail, uphone: user!.uphone, ugender: user!.ugender, ubio: _bioController.text, uavatar:user!.uavatar);
+
+
+                      }
+                      await storeSignedInUser(newUser, update: true).then((value) async{
+                        Provider.of<UserProvider>(context, listen: false).updateUser(newUser!);
+
+                        // Update UserProvider with the signed-in user
+
+                      });
+                      Navigator.pop(context);
+
+                    } else{
+                      createUser();
+                    }
                     // Continue button pressed
                   },
-                  child: Text('Continue', style: TextStyle(color: Colors.white, fontSize: 16),),
+                  child: Text(widget.isEditing?'Save':'Continue', style: TextStyle(color: Colors.white, fontSize: 16),),
                   style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
                 ),
               ],
@@ -332,10 +389,42 @@ class _ProfileFillFormState extends State<ProfileFillForm> {
       // Handle errors appropriately (e.g., display an error message to the user)
       print("Error adding user: $e");
     }
-
-
-
   }
+  Future<void> updateUserBio(String newBio) async {
+    final userSnapshots = FirebaseFirestore.instance.collection('users').where('uid', isEqualTo: user!.uid);
+
+
+
+    final querySnapshot = await userSnapshots.get();
+    print(querySnapshot.docs);
+    if (querySnapshot.docs.isNotEmpty) {
+
+      final documentRef = querySnapshot.docs.first.reference;
+      print(documentRef);
+      final updatedData = {'ubio': newBio};
+      await documentRef.update(updatedData).then((value) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text( "Updated Bio Successfully!!"))));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text( "Couldn't save the changes...")));
+      // Handle the case where no document is found (optional)
+
+    }
+  }
+  Future<void> updateUserAvatar(String newImageUrl) async {
+    final userSnapshots = FirebaseFirestore.instance.collection('users').where('uid', isEqualTo: user!.uid);
+
+    print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>+${user!.uid}");
+
+    final querySnapshot = await userSnapshots.get();
+    if (querySnapshot.docs.isNotEmpty) {
+      final documentRef = querySnapshot.docs.first.reference;
+      final updatedData = {'uavatar': newImageUrl};
+      await documentRef.update(updatedData).then((value) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text( "Updated Profile Photo Successfully!!"))));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text( "Couldn't save the changes...")));
+      // Handle the case where no document is found (optional)
+    }
+  }
+
 
 
 }

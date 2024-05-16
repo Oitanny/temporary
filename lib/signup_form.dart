@@ -30,15 +30,15 @@ class _SignUpFormState extends State<SignUpForm> {
               Padding(
                 padding: const EdgeInsets.only(top: 20),
                 child: SizedBox(
-                    height: 250,
-                    width: 400,
+                    height: 200,
+                    width: 350,
                     child: Image.asset('assets/Images/logo.png')),
               ),
               const Text(
                 "Create Your Account",
                 style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 30,
+                    fontSize: 25,
                     color: Colors.white,
                     fontFamily: 'assets/fonts/OpenSans-Bold.ttf'),
               ),
@@ -186,7 +186,7 @@ class _SignUpFormState extends State<SignUpForm> {
                             context,
                             MaterialPageRoute(
                                 builder: (_) =>
-                                 ProfileFillForm(email: emailText.text)),
+                                 ProfileFillForm(email: emailText.text, isEditing: false)),
                           );
                         } on FirebaseAuthException catch (exc){
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -247,25 +247,60 @@ class _SignUpFormState extends State<SignUpForm> {
                   ],
                 ),
               ),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(top: 25.0),
-                    child: Image.asset('assets/Images/facebook 2.png'),
+              Padding(
+                padding: const EdgeInsets.only(top: 20.0),
+                child: SizedBox(
+                  width: 278,
+                  height: 50,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white.withOpacity(0.3),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15), // <-- Radius
+                      ),
+                    ),
+                    onPressed: ()async {
+                      print("Continue with Google");
+                      // await signInWithGoogle();
+                    },
+                    child: Row(
+                      children: [
+                        Image.asset('assets/Images/google 1.png'),
+                        const Padding(
+                          padding: EdgeInsets.only(left: 32.0),
+                          child: Text(
+                            'Continue with Google',
+                            style: TextStyle(
+                              fontWeight: FontWeight.normal,
+                              fontSize: 14,
+                              fontFamily: 'OpenSans',
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  Padding(
-                    padding:
-                        const EdgeInsets.only(top: 25.0, right: 20, left: 20),
-                    child: Image.asset('assets/Images/google 1.png'),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 25.0),
-                    child: Image.asset('assets/Images/apple-logo 3.png'),
-                  ),
-                ],
+                ),
               ),
+              // Row(
+              //   mainAxisAlignment: MainAxisAlignment.center,
+              //   children: [
+              //     Padding(
+              //       padding: const EdgeInsets.only(top: 25.0),
+              //       child: Image.asset('assets/Images/facebook 2.png'),
+              //     ),
+              //     Padding(
+              //       padding:
+              //           const EdgeInsets.only(top: 25.0, right: 20, left: 20),
+              //       child: Image.asset('assets/Images/google 1.png'),
+              //     ),
+              //     Padding(
+              //       padding: const EdgeInsets.only(top: 25.0),
+              //       child: Image.asset('assets/Images/apple-logo 3.png'),
+              //     ),
+              //   ],
+              // ),
 
               Padding(
                 padding: const EdgeInsets.only(top: 25.0),

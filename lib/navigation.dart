@@ -18,21 +18,24 @@ class _SociioState extends State<Sociio> {
   Widget build(BuildContext context) {
     return Scaffold(
       bottomNavigationBar: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 70.0, vertical: 8.0), 
+        padding: const EdgeInsets.symmetric(horizontal: 60.0, vertical: 8.0),
         child: ClipRRect(
+
           borderRadius: BorderRadius.circular(30),
           child: Container(
             height: 60,
+
             decoration: BoxDecoration(
               color: Colors.grey.withOpacity(0.2),
               borderRadius: BorderRadius.circular(30),
             ),
             child: GNav(
+              
               backgroundColor: Colors.transparent,
               color: Colors.white,
               activeColor: Colors.white,
               tabBackgroundColor: Colors.black,
-              gap: 8, 
+              gap: 10,
               padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20), 
               tabs: const [
                 GButton(

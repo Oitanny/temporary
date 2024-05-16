@@ -26,6 +26,11 @@ dependencies:
   country_code_picker:
   shared_preferences:
   provider:
+  sign_in_button: ^3.2.0
+  google_sign_in:
+  url_launcher_plus:
+  url_launcher_android:
+
 
 dev_dependencies:
   flutter_test:

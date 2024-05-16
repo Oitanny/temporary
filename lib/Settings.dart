@@ -4,6 +4,9 @@ import 'package:sociio/cacheBuilder/message_cache.dart';
 import 'package:sociio/cacheBuilder/signedInUser_cache.dart';
 import 'package:sociio/cacheBuilder/userProvider.dart';
 import 'package:sociio/models/user_model.dart';
+import 'package:sociio/notification.dart';
+import 'package:sociio/privacy_policy.dart';
+import 'package:sociio/screens/profile_fill_form.dart';
 import 'login.dart';
 
 class Settings extends StatefulWidget {
@@ -111,22 +114,22 @@ class _SettingsState extends State<Settings> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  buildButton(context, Icons.camera, 'Change profile picture'),
+                  buildButton(context, Icons.edit, 'Update Profile', ()=>Navigator.push(context, MaterialPageRoute(builder: (context)=>ProfileFillForm(email: user!.uemail, isEditing: true,),))),
+                  // const SizedBox(height: 15),
+                  // buildButton(context, Icons.edit, 'Change Status'),
                   const SizedBox(height: 15),
-                  buildButton(context, Icons.edit, 'Change Status'),
+                  buildButton(context, Icons.bookmark, 'Saved Posts',()=>Navigator.pop(context)),
                   const SizedBox(height: 15),
-                  buildButton(context, Icons.bookmark, 'Saved Posts'),
+                  buildButton(context, Icons.security, 'Privacy & Security',()=>Navigator.push(context, MaterialPageRoute(builder: (context)=>SecurityPage(),))),
                   const SizedBox(height: 15),
-                  buildButton(context, Icons.security, 'Privacy & Security'),
-                  const SizedBox(height: 15),
-                  buildButton(context, Icons.notifications, 'Notifications & Sounds'),
-                  const SizedBox(height: 20),
+                  buildButton(context, Icons.notifications, 'Notifications & Sounds',()=>Navigator.push(context, MaterialPageRoute(builder: (context)=>NotificationPage(),))),
+                  const SizedBox(height: 40),
                   Container(
                     width: double.infinity,
                     margin: const EdgeInsets.symmetric(horizontal: 18),
                     child: ElevatedButton(
                       onPressed: _logoutClicked
-                          ? null 
+                          ? null
                           : () async{
                               setState(() {
                                 _logoutClicked = true;
@@ -166,25 +169,31 @@ class _SettingsState extends State<Settings> {
     );
   }
 
-  Widget buildButton(BuildContext context, IconData icon, String label) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 18.0),
-      child: Row(
-        children: [
-          Icon(
-            icon,
-            color: Colors.white,
-          ),
-          const SizedBox(width: 10),
-          Text(
-            label,
-            style: const TextStyle(
+  Widget buildButton(BuildContext context, IconData icon, String label, void Function() callback) {
+    return GestureDetector(
+      onTap: (){
+        callback();
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 18.0),
+        child: Row(
+          children: [
+            Icon(
+              icon,
               color: Colors.white,
-              fontSize: 18,
             ),
-          ),
-        ],
+            const SizedBox(width: 10),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
+
 }

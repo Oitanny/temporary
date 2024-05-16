@@ -2,17 +2,29 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sociio/models/user_model.dart';
 
 
-Future<void> storeSignedInUser(User user) async {
+Future<void> storeSignedInUser(User user, {bool update = false}) async {
   final prefs = await SharedPreferences.getInstance();
 
-  // Store user data using appropriate data types
-  await prefs.setString('uid', user.uid);
-  await prefs.setString('uname', user.uname);
-  await prefs.setString('uemail', user.uemail);
-  await prefs.setString('uphone', user.uphone);
-  await prefs.setString('ugender', user.ugender);
-  await prefs.setString('ubio', user.ubio);
-  await prefs.setString('uavatar', user.uavatar);
+  // If update is true, only update existing user data; otherwise, store new user data
+  if (update) {
+    final existingUid = prefs.getString('uid');
+    if (existingUid == user.uid) {
+      await prefs.setString('uname', user.uname);
+      await prefs.setString('uemail', user.uemail);
+      await prefs.setString('uphone', user.uphone);
+      await prefs.setString('ugender', user.ugender);
+      await prefs.setString('ubio', user.ubio);
+      await prefs.setString('uavatar', user.uavatar);
+    }
+  } else {
+    await prefs.setString('uid', user.uid);
+    await prefs.setString('uname', user.uname);
+    await prefs.setString('uemail', user.uemail);
+    await prefs.setString('uphone', user.uphone);
+    await prefs.setString('ugender', user.ugender);
+    await prefs.setString('ubio', user.ubio);
+    await prefs.setString('uavatar', user.uavatar);
+  }
 
   print('User successfully stored in local cache.'); // Optional for debugging
 }

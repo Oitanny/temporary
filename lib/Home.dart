@@ -139,7 +139,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   ),
                 ],
               ),
+              SizedBox(height: 10,),
               tabTop(context),
+
             ],
           ),
         ),
@@ -157,6 +159,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   Widget tabTop(BuildContext context) {
     return TabBar(
+      // isScrollable: true,
       controller: _tabController,
       labelColor: Colors.white,
       unselectedLabelColor: Colors.white,
@@ -171,19 +174,19 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         Tab(
           child: Align(
             alignment: Alignment.center,
-            child: Text('Recent'),
+            child: Text('Recent', style: TextStyle(fontSize: 12),),
           ),
         ),
         Tab(
           child: Align(
             alignment: Alignment.center,
-            child: Text('Achievements'),
+            child: Text('Achievements', style: TextStyle(fontSize: 12),),
           ),
         ),
         Tab(
           child: Align(
             alignment: Alignment.center,
-            child: Text('Events'),
+            child: Text('Events', style: TextStyle(fontSize: 12),),
           ),
         ),
       ],

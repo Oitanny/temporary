@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 class Post {
   final String date;
+  final String title;
   final String description;
   final String hashtags;
   final List<String> images;
@@ -15,6 +16,7 @@ class Post {
 
 
   Post({
+    required this.title,
     required this.date,
     required this.description,
     required this.hashtags,
@@ -39,7 +41,8 @@ class Post {
       time: data['time'] as String,
       type: data['type'] as String,
       likes: data['likes'] as int,
-      comments: List<String>.from(data['comments'] as List)
+      comments: List<String>.from(data['comments'] as List),
+      title: data['title'] as String,
     );
   }
 }

@@ -2,7 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
+import 'package:sign_in_button/sign_in_button.dart';
 import 'package:sociio/cacheBuilder/signedInUser_cache.dart';
 import 'package:sociio/cacheBuilder/userProvider.dart';
 import 'package:sociio/models/user_model.dart';
@@ -37,8 +39,8 @@ class _LoginState extends State<Login> {
               Padding(
                 padding: const EdgeInsets.only(top: 20),
                 child: SizedBox(
-                  height: 250,
-                  width: 400,
+                  height: 200,
+                  width: 350,
                   child: Image.asset('assets/Images/logo.png'),
                 ),
               ),
@@ -46,7 +48,7 @@ class _LoginState extends State<Login> {
                 "Login to Your Account",
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 30,
+                  fontSize: 25,
                   color: Colors.white,
                   fontFamily: 'assets/fonts/OpenSans-Bold.ttf',
                 ),
@@ -257,24 +259,62 @@ class _LoginState extends State<Login> {
                   ],
                 ),
 
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(top: 25.0),
-                    child: Image.asset('assets/Images/facebook 2.png'),
+
+              Padding(
+                padding: const EdgeInsets.only(top: 20.0),
+                child: SizedBox(
+                  width: 278,
+                  height: 50,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white.withOpacity(0.3),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15), // <-- Radius
+                      ),
+                    ),
+                    onPressed: () {
+                      print("Continue with Google");
+                      signInWithGoogle();
+                    },
+                    child: Row(
+                      children: [
+                        Image.asset('assets/Images/google 1.png'),
+                        const Padding(
+                          padding: EdgeInsets.only(left: 32.0),
+                          child: Text(
+                            'Continue with Google',
+                            style: TextStyle(
+                              fontWeight: FontWeight.normal,
+                              fontSize: 14,
+                              fontFamily: 'OpenSans',
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  Padding(
-                    padding:
-                        const EdgeInsets.only(top: 25.0, right: 20, left: 20),
-                    child: Image.asset('assets/Images/google 1.png'),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 25.0),
-                    child: Image.asset('assets/Images/apple-logo 3.png'),
-                  ),
-                ],
+                ),
               ),
+              // Row(
+              //   mainAxisAlignment: MainAxisAlignment.center,
+              //   children: [
+              //     // Padding(
+              //     //   padding: const EdgeInsets.only(top: 25.0),
+              //     //   child: Image.asset('assets/Images/facebook 2.png'),
+              //     // ),
+              //     Text("Continue with Google"),
+              //     Padding(
+              //       padding:
+              //           const EdgeInsets.only(top: 25.0, right: 20, left: 20),
+              //       child: Image.asset('assets/Images/google 1.png'),
+              //     ),
+              //     // Padding(
+              //     //   padding: const EdgeInsets.only(top: 25.0),
+              //     //   child: Image.asset('assets/Images/apple-logo 3.png'),
+              //     // ),
+              //   ],
+              // ),
 
               Padding(
                 padding: const EdgeInsets.only(top: 25.0),
@@ -377,6 +417,24 @@ class _LoginState extends State<Login> {
       );
     }
   }
+  Future<GoogleSignInAccount?> signInWithGoogle() async {
+    final googleSignIn = GoogleSignIn();
 
+    try {
+      final result = await googleSignIn.signIn();
+      if (result != null) {
+        // Return the GoogleSignInAccount
+        print("✅✅✅");
+        return result;
+      } else {
+        return null;
+      }
+    } catch (error) {
+      print("⚠️⚠️⚠️noo");
+
+      print(error);
+      return null;
+    }
+  }
 
 }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
 import 'package:sociio/Home.dart';
+import 'package:sociio/cacheBuilder/likedpost_cache.dart';
 import 'package:sociio/cacheBuilder/userProvider.dart';
 import 'package:sociio/models/user_model.dart';
 import 'package:sociio/navigation.dart';
@@ -26,10 +27,18 @@ void main() async {
 
   runApp(
 
-      ChangeNotifierProvider<UserProvider>(
-      create: (_) => UserProvider(user: user),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider<UserProvider>(create: (_) => UserProvider(user:user)), // Add LikeState provider
+        ChangeNotifierProvider(create: (_) => LikeState()),
+        // Add other providers if needed
+      ],
       child: MyApp(),
     ),
+    //   ChangeNotifierProvider<UserProvider>(
+    //   create: (_) => UserProvider(user: user),
+    //   child: MyApp(),
+    // ),
 
   );
 }

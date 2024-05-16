@@ -3,10 +3,15 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/widgets.dart';
+import 'package:provider/provider.dart';
 import 'package:sociio/models/post_model.dart';
 import 'package:flutter/material.dart';
 import 'package:sociio/models/user_model.dart';
 import 'package:sociio/userProfile_view.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher_string.dart';
+
+import '../../cacheBuilder/likedpost_cache.dart';
 
 class PostWidget extends StatefulWidget {
   final Post post;
@@ -20,7 +25,7 @@ class _PostWidgetState extends State<PostWidget> {
   late final Post post; // Declare 'post' as 'late'
   User? user;
   bool _isExpanded = false;
-
+  bool saved=false;
   int _currentImageIndex = 0;
 
   @override
@@ -39,6 +44,7 @@ class _PostWidgetState extends State<PostWidget> {
 
   @override
   Widget build(BuildContext context) {
+
     return user == null ? Container(
       margin: EdgeInsets.all(10),
       padding: EdgeInsets.all(10),
@@ -53,6 +59,7 @@ class _PostWidgetState extends State<PostWidget> {
 
 
   Widget _buildPostWidget() {
+    bool liked = Provider.of<LikeState>(context).isLiked(post.title+post.postedBy);
 
           return Container(
             padding: const EdgeInsets.all(12.0),
@@ -104,7 +111,7 @@ class _PostWidgetState extends State<PostWidget> {
                       ],
                     ),
                     Spacer(),
-                    Text(getRelativeTimeText(getDifferenceInMinutes(post.postedOn.toDate()))),
+                    Text(getRelativeTimeText(post.postedOn.toDate())),
 
                     // Text(post.postedOn.toString()),
                   ],
@@ -255,32 +262,53 @@ class _PostWidgetState extends State<PostWidget> {
                       Row(
                         children: [
                           IconButton(
-                            onPressed: () {
+                            onPressed: () async{
+
+                              bool newLiked = !liked;
+                              Provider.of<LikeState>(context, listen: false).setLiked(post.title+post.postedBy, newLiked);
+
+                              await likeCountUpdate(newLiked, post.title);
+                              setState(() {
+                                liked=newLiked;
+                              });
                             },
-                            icon: const Icon(Icons.favorite),
+
+                            icon:  Icon(liked==true?Icons.favorite:Icons.favorite_border),
                             padding: const EdgeInsets.all(0.0),
                           ),
-                          Text(post.likes.toString()),
+                          Text(
+
+                              liked==true?(post.likes+1).toString():
+                          post.likes.toString()
+                          ),
                         ],
                       ),
                       const Spacer(),
+                      // IconButton(
+                      //   onPressed: () {
+                      //   },
+                      //   icon: const Icon(Icons.send),
+                      //   padding: const EdgeInsets.all(0.0),
+                      // ),
                       IconButton(
                         onPressed: () {
+                          setState(() {
+                            saved=!saved;
+                          });
+
                         },
-                        icon: const Icon(Icons.send),
+                        icon:  Icon(saved==true?Icons.bookmark:Icons.bookmark_border),
                         padding: const EdgeInsets.all(0.0),
                       ),
-                      IconButton(
-                        onPressed: () {
-                        },
-                        icon: const Icon(Icons.bookmark),
-                        padding: const EdgeInsets.all(0.0),
-                      ),
-                      IconButton(
-                        onPressed: () {
-                        },
-                        icon: const Icon(Icons.calendar_today),
-                        padding: const EdgeInsets.all(0.0),
+                      Visibility(
+                        visible: post.type=="achievement"?false:true,
+                        child: IconButton(
+                          onPressed: () {
+                            _launchGoogleCalendar(post.title,post.description, post.date, post.time);
+                          },
+                          icon: const Icon(Icons.calendar_today),
+                          padding: const EdgeInsets.all(0.0),
+                        ),
                       ),
                     ],
                   ),
@@ -299,20 +327,44 @@ class _PostWidgetState extends State<PostWidget> {
     final difference = now.difference(postDateTime);
     return difference.inMinutes.abs(); // Get absolute value of minutes
   }
-  String getRelativeTimeText(int minutes) {
-    if (minutes == 0) {
-      return 'just now';
-    } else if (minutes < 60) {
-      return '$minutes minute${minutes > 1 ? 's' : ''} ago';
-    } else if (minutes < 120) {
-      return '1 hour ago';
-    } else {
-      final hours = (minutes / 60).floor();
-      return '$hours hour${hours > 1 ? 's' : ''} ago';
-    }
+  String getRelativeTimeText(DateTime postTime) {
+      final now = DateTime.now();
+      final difference = now.difference(postTime);
+
+      final minutes = difference.inMinutes;
+      if (minutes == 0) {
+        return 'just now';
+      } else if (minutes < 60) {
+        return '$minutes minute${minutes > 1 ? 's' : ''} ago';
+      } else if (difference.inHours < 24) {
+        return '${difference.inHours} hour${difference.inHours > 1 ? 's' : ''} ago';
+      } else {
+        // Display days
+        final days = difference.inDays;
+        return '$days day${days > 1 ? 's' : ''} ago';
+      }
+
   }
+  
+  Future<void> likeCountUpdate( bool addLike, String title)async {
+    final postRef = FirebaseFirestore.instance.collection('posts').where('title', isEqualTo: title);
 
+    // Fetch the document snapshot
+    final querySnapshot = await postRef.get();
+    final document = querySnapshot.docs.first;
 
+    // Update the like count
+    int currentLikes = document['likes'] ?? 0;
+    int newLikes = addLike ? currentLikes + 1 : currentLikes - 1;
+
+    // Ensure newLikes count doesn't go below 0
+    if (newLikes < 0) {
+      newLikes = 0;
+    }
+
+    // Update the like count in Firestore
+    await document.reference.update({'likes': newLikes});
+  }
   Future<User> fetchCreator(String postedBy) async {
     // Reference to the Firestore collection 'users'
     CollectionReference users = FirebaseFirestore.instance.collection('users');
@@ -338,5 +390,46 @@ class _PostWidgetState extends State<PostWidget> {
       throw Exception('User not found');
     }
   }
+
+
+
+void _launchGoogleCalendar(String title, String description, String date, String time) async {
+  String urlPartDT=convertToGoogleCalendarFormat(date, time);
+  String formattedEventTitle = Uri.encodeComponent(title);
+  String formattedEventDesc= Uri.encodeComponent(description);
+
+  String appUrl = 'https://www.google.com/calendar/render?action=TEMPLATE&text=Meeting%20with%20Team&dates=20220517T140000Z/20220517T150000Z&details=Discuss%20project%20status&location=Conference%20Room';
+  const webUrl = 'https://calendar.google.com/calendar/';
+
+  if (await canLaunch(appUrl)) {
+    await launch(appUrl);
+  } else {
+    if (await canLaunch(webUrl)) {
+      await launch(webUrl);
+    } else {
+      throw 'Could not launch $webUrl';
+    }
+  }
+}
+
+String convertToGoogleCalendarFormat(String date, String time) {
+  List<String> dateParts = date.split('/');
+  String day = dateParts[0].padLeft(2, '0');
+  String month = dateParts[1].padLeft(2, '0');
+  String year = dateParts[2];
+
+  List<String> timeParts = time.split(':');
+  String hour = timeParts[0].padLeft(2, '0');
+  String minute = timeParts[1].padLeft(2, '0');
+
+  return '${year}${month}${day}T${hour}${minute}00Z';
+}
+
+
+
+String _formatDateTime(DateTime dateTime) {
+  return '${dateTime.year}${dateTime.month.toString().padLeft(2, '0')}${dateTime.day.toString().padLeft(2, '0')}T${dateTime.hour.toString().padLeft(2, '0')}${dateTime.minute.toString().padLeft(2, '0')}00';
+}
+
 
 

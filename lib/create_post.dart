@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
@@ -28,6 +29,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   List<String> urls=[];
   TextEditingController descriptionController = TextEditingController();
   TextEditingController hashtagsController = TextEditingController();
+  TextEditingController titleController = TextEditingController();
 
   DateTime? selectedDate;
   TimeOfDay? selectedTime;
@@ -119,6 +121,25 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                           ),
                         );
                       },
+                    ),
+                  ),
+                ),
+              ),
+
+              Visibility(
+                  visible:selectedCategory=="Achievements"?false:true ,
+                  child: const SizedBox(height: 16.0)),
+              Visibility(
+                visible:selectedCategory=="Achievements"?false:true ,
+                child: TextField(
+                  controller: titleController,
+                  maxLines: null,
+                  keyboardType: TextInputType.multiline,
+                  decoration: const InputDecoration(
+                    hintText: 'Add title',
+                    border: OutlineInputBorder(),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.red),
                     ),
                   ),
                 ),
@@ -314,6 +335,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     urls=await uploadImages(images);
 
     final post = {
+      'title': selectedCategory=="Achievements"?"Achievement of ${user!.uid}": titleController.text,
         'date': selectedCategory=="Achievements"?(DateFormat('dd/MM/yyyy').format(DateTime.now()).toString()):(DateFormat('dd/MM/yyyy').format(selectedDate!).toString()),
         'description': descriptionController.text,
         'hashtags': hashtagsController.text,
@@ -365,8 +387,3 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
 }
 
-void main() {
-  runApp(const MaterialApp(
-    home: CreatePostScreen(),
-  ));
-}
