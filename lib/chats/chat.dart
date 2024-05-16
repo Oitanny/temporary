@@ -20,6 +20,7 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   User? user;
+  List<ChatMessage>? chats = [];
   List<Map<String, dynamic>>? messagesAll;
   List<Map<String, dynamic>> messages = [];
 
@@ -42,6 +43,7 @@ class _ChatPageState extends State<ChatPage> {
     super.didChangeDependencies();
     final userProvider = Provider.of<UserProvider>(context);
     user = userProvider.user;
+    buildChatMessagesList();
 
   }
   Future<void> _loadCachedMessages() async {
@@ -113,15 +115,15 @@ class _ChatPageState extends State<ChatPage> {
                     ),
                   ),
                   Divider(color: Color.fromRGBO(255, 255, 255, 0.2), thickness: 0.5,),
-              cachedMessages.isEmpty
+              chats!.isEmpty
                   ? Container(child: Center(child: Text('You haven\'t sent any messages so far...'))) // Show placeholder
                   :
               Expanded(
                     child: ListView.builder(
-                      itemCount: cachedMessages.length,
+                      itemCount: chats?.length,
                       itemBuilder: (context, index) {
-                        final message = cachedMessages[index];
-                        return RecipientTile(otherUser: message.senderId, latestMsg: message.message, timestamp: message.timestamp);
+                        final message = chats?[index];
+                        return RecipientTile(otherUser: message!.recipientId, latestMsg: message!.message, timestamp: message.timestamp);
                       },
                     ),
                   ),
@@ -133,5 +135,48 @@ class _ChatPageState extends State<ChatPage> {
       ),
 
     );
+  }
+  
+  Future<void> buildChatMessagesList()async{
+
+    final querySnapshot = await FirebaseFirestore.instance.collection("chats").get();
+    final filteredMessagesCollections = querySnapshot.docs.where((messageCollection) => messageCollection.id.contains(user!.uid)).toList();
+    for (var messageCollection in filteredMessagesCollections) {
+      // Create a subcollection query to get the latest message
+      final latestMessageQuery = messageCollection.reference
+          .collection('messages')
+          .orderBy('timestamp',
+          descending: true) // Order by timestamp in descending order
+          .limit(1); // Limit the results to 1 (latest message)
+
+      // Get the latest message snapshot
+      final latestMessageSnapshot = await latestMessageQuery.get();
+
+      // Check if a message exists
+      if (latestMessageSnapshot.docs.isNotEmpty) {
+        final latestMessageDoc = latestMessageSnapshot.docs.first;
+
+        // Access the message data
+        final latestMessage = latestMessageDoc.data();
+        final timestamp = (latestMessage['timestamp'] as Timestamp)?.toDate();
+
+        final chat = ChatMessage(
+          recipientId: latestMessage['receiverId'],
+          senderId: latestMessage['senderId'], // Replace 'text' with actual field name
+          timestamp: timestamp!,
+          message: latestMessage['message']
+        );
+
+        // Add the Chat object to a list
+        chats?.add(chat);
+        // Process the latest message (e.g., display it)
+        print(
+            'Latest message: ${latestMessage['message']}'); // Replace 'text' with the actual field name in your messages
+      } else {
+        // Handle the case where no messages exist in the collection
+        print('No messages found for chat: ${messageCollection.id}');
+      }
+    }
+    print(chats);
   }
 }

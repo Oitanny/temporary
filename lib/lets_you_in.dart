@@ -2,6 +2,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sociio/screens/profile_fill_form.dart';
 
 import 'signup_form.dart';
 import 'login.dart';
@@ -76,7 +77,8 @@ class Let_in extends StatelessWidget {
                     ),
                     onPressed: ()async {
                       print("Continue with Google");
-                      var x= await signInWithGoogle().;
+                      String x= await signInWithGoogle().user.email;
+                      Navigator.push(context, MaterialPageRoute(builder: (context)=>ProfileFillForm(email: x, isEditing: false)));
 
                       print(x);
 
