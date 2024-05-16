@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import "package:flutter/material.dart";
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sociio/screens/profile_fill_form.dart';
 import 'login.dart';
 import 'navigation.dart';
@@ -260,8 +261,14 @@ class _SignUpFormState extends State<SignUpForm> {
                       ),
                     ),
                     onPressed: ()async {
+
                       print("Continue with Google");
-                      // await signInWithGoogle();
+                      String x= await signInWithGoogle();
+                      print("Value of X:$x");
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Google Sign Up Succesful, Fill Profile to Proceed")));
+                      Navigator.push(context, MaterialPageRoute(builder: (context)=>ProfileFillForm(email: x, isEditing: false)));
+
+
                     },
                     child: Row(
                       children: [
@@ -341,6 +348,18 @@ class _SignUpFormState extends State<SignUpForm> {
   bool isBMUEmail(String email) {
     RegExp regex = RegExp(r"@[Bb][Mm][Uu]\.edu\.in$");
     return regex.hasMatch(email);
+  }
+  Future<String> signInWithGoogle() async {
+    final GoogleSignInAccount? gUser =await  GoogleSignIn().signIn();
+    final GoogleSignInAuthentication gAuth=await gUser!.authentication;
+    final credential=GoogleAuthProvider.credential(
+      accessToken: gAuth.accessToken,
+      idToken: gAuth.idToken,
+    );
+    print(credential);
+    await FirebaseAuth.instance.signInWithCredential(credential);
+    return gUser.email;
+
   }
 
 }

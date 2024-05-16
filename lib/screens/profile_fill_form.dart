@@ -94,7 +94,7 @@ class _ProfileFillFormState extends State<ProfileFillForm> {
                   CircleAvatar(
                   radius: 50,
                     backgroundColor: Colors.grey,
-                    backgroundImage: NetworkImage(user!.uavatar),
+                    backgroundImage: image==null?AssetImage("assets/Images/no_image.jpg") as ImageProvider:NetworkImage(user!.uavatar),
                   ),
 
 

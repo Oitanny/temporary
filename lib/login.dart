@@ -417,24 +417,21 @@ class _LoginState extends State<Login> {
       );
     }
   }
-  Future<GoogleSignInAccount?> signInWithGoogle() async {
-    final googleSignIn = GoogleSignIn();
+  signInWithGoogle() async {
 
-    try {
-      final result = await googleSignIn.signIn();
-      if (result != null) {
-        // Return the GoogleSignInAccount
-        print("✅✅✅");
-        return result;
-      } else {
-        return null;
-      }
-    } catch (error) {
-      print("⚠️⚠️⚠️noo");
+    final GoogleSignIn gUser =await GoogleSignIn();
+    await FirebaseFirestore.instance.clearPersistence();
+    await  FirebaseAuth.instance.signOut();
+    GoogleSignInAccount? account = await gUser.signInSilently();
 
-      print(error);
-      return null;
-    }
+    await account?.clearAuthCache();
+
+    final GoogleSignInAuthentication gAuth=await account!.authentication;
+    final credential=GoogleAuthProvider.credential(
+      accessToken: gAuth.accessToken,
+      idToken: gAuth.idToken,
+    );
+    print(credential);
+    return await FirebaseAuth.instance.signInWithCredential(credential);
   }
-
 }

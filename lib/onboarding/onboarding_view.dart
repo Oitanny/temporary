@@ -5,6 +5,7 @@ import 'package:sociio/get_started.dart';
 import 'package:sociio/lets_you_in.dart';
 import 'package:sociio/login.dart';
 import 'package:sociio/onboarding/widgets/slider_indicator.dart';
+import 'package:sociio/signup_form.dart';
 
 class OnboardingScreenView extends StatefulWidget {
   const OnboardingScreenView({super.key});
@@ -35,7 +36,7 @@ class _OnboardingScreenViewState extends State<OnboardingScreenView> {
               index=index+1;
             }
             else{
-              Navigator.push(context, MaterialPageRoute(builder: (context)=>Let_in()));
+              Navigator.push(context, MaterialPageRoute(builder: (context)=>SignUpForm()));
             }
             print(images[index]);
           });
