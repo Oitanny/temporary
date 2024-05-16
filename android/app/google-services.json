@@ -14,22 +14,6 @@
       },
       "oauth_client": [
         {
-          "client_id": "1083862658551-1kt7d25gqr8ka4ghhmh8uqbpqqvrsrh5.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.example.sociio",
-            "certificate_hash": "e144ede87ed33570b2c2b9a311716a547b3f0762"
-          }
-        },
-        {
-          "client_id": "1083862658551-igprt978098juknt5lqsu56muplkge66.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.example.sociio",
-            "certificate_hash": "98383dc797c9ad7857613ff700dd6e6c91487973"
-          }
-        },
-        {
           "client_id": "1083862658551-n8p7k382enfgdk0rm598rersq84a5i7p.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
