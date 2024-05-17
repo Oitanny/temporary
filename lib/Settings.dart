@@ -6,6 +6,7 @@ import 'package:sociio/cacheBuilder/userProvider.dart';
 import 'package:sociio/models/user_model.dart';
 import 'package:sociio/notification.dart';
 import 'package:sociio/privacy_policy.dart';
+import 'package:sociio/savedPosts.dart';
 import 'package:sociio/screens/profile_fill_form.dart';
 import 'login.dart';
 
@@ -118,7 +119,7 @@ class _SettingsState extends State<Settings> {
                   // const SizedBox(height: 15),
                   // buildButton(context, Icons.edit, 'Change Status'),
                   const SizedBox(height: 15),
-                  buildButton(context, Icons.bookmark, 'Saved Posts',()=>Navigator.pop(context)),
+                  buildButton(context, Icons.bookmark, 'Saved Posts',()=>Navigator.push(context, MaterialPageRoute(builder: (context)=>SavedPostPage(),))),
                   const SizedBox(height: 15),
                   buildButton(context, Icons.security, 'Privacy & Security',()=>Navigator.push(context, MaterialPageRoute(builder: (context)=>SecurityPage(),))),
                   const SizedBox(height: 15),

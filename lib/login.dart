@@ -417,21 +417,104 @@ class _LoginState extends State<Login> {
       );
     }
   }
-  signInWithGoogle() async {
 
-    final GoogleSignIn gUser =await GoogleSignIn();
-    await FirebaseFirestore.instance.clearPersistence();
-    await  FirebaseAuth.instance.signOut();
-    GoogleSignInAccount? account = await gUser.signInSilently();
+  Future<bool> hasUserSignedInWithGoogle(String email) async {
+    try {
+      // Attempt to fetch sign-in methods for the email address
+      final methods = await FirebaseAuth.instance.fetchSignInMethodsForEmail(email);
 
-    await account?.clearAuthCache();
+      // Check if 'google.com' is present, indicating a Google sign-in
+      return methods.contains('google.com');
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'invalid-email') {
+        print('Invalid email format provided.');
+      } else {
+        print('Error checking sign-in methods: ${e.code}');
+      }
+      return false; // Handle error, assuming no Google sign-in
+    }
+  }
+  Future<void> signInWithGoogle() async {
+    await GoogleSignIn().signOut();
+    await FirebaseAuth.instance.signOut();
 
-    final GoogleSignInAuthentication gAuth=await account!.authentication;
-    final credential=GoogleAuthProvider.credential(
-      accessToken: gAuth.accessToken,
-      idToken: gAuth.idToken,
-    );
-    print(credential);
-    return await FirebaseAuth.instance.signInWithCredential(credential);
+    try {
+      // Trigger Google Sign-In flow
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+
+      if (googleUser != null) {
+        final email = googleUser.email!; // Access the email address
+
+        // Check if user has already signed in with this Google account
+        final hasPreviouslySignedUp = await hasUserSignedInWithGoogle(email);
+
+        if (hasPreviouslySignedUp) {
+          // User has already signed up with this Google account
+          print('Welcome back, $email!');
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("User with this email already exists, considering log-in")));
+        } else {
+          // User is signing up for the first time with this Google account
+          print('Welcome, $email!');
+          // Handle new user logic (e.g., create user account in database)
+          final GoogleSignInAuthentication gAuth=await googleUser!.authentication;
+          final credential=GoogleAuthProvider.credential(
+            accessToken: gAuth.accessToken,
+            idToken: gAuth.idToken,
+          );
+          print(credential);
+          await FirebaseAuth.instance.signInWithCredential(credential).then((value) async{
+            var userDoc = await FirebaseFirestore.instance.collection('users').where('uemail', isEqualTo: email).get();
+            print("🔴🔴🔴🔴");
+
+            print(userDoc);
+            if (userDoc.docs.isNotEmpty) {
+              var userData = userDoc.docs.first.data();
+              print("USER DATA:\n${userData}\n\n");
+              // Create a User object from the fetched data
+              UserModel.User user = UserModel.User(
+                uid: userData['uid'] ?? '',
+                uname: userData['uname'] ?? '',
+                uemail: userData['uemail'] ?? '',
+                uphone: userData['uphone'] ?? '',
+                ugender: userData['ugender'] ?? '',
+                ubio: userData['ubio'] ?? '',
+                uavatar: userData['uavatar'] ?? '',
+              );
+              // Update UserProvider with the signed-in user
+
+              await storeSignedInUser(user).then((value) async{
+                Provider.of<UserProvider>(context, listen: false).updateUser(user);
+
+                // Update UserProvider with the signed-in user
+              });
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text("Login Successful!"),
+                  backgroundColor: Colors.green,
+                ),
+              );
+              Navigator.push(context, MaterialPageRoute(builder: (context) => Sociio()));
+
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text("User not found in database", style: TextStyle(color: Colors.white),),
+                  backgroundColor: Colors.red,
+
+                ),
+              );
+            }
+          });
+
+        }
+
+        // Proceed with sign-in using the Google credential (optional)
+        // ...
+      } else {
+        print('Sign-in cancelled by user.');
+      }
+    } on FirebaseAuthException catch (e) {
+      print('Error signing in with Google: ${e.code}');
+    }
   }
 }

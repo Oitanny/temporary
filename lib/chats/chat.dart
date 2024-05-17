@@ -113,66 +113,75 @@ class _ChatPageState extends State<ChatPage> {
               //     ? Container(child: Center(child: Text('You haven\'t sent any messages so far...'))) // Show placeholder
               //     :
 
-              StreamBuilder<List<ChatMessage>>(
-                stream: getChatsStream(),
-                builder: (context, snapshot) {
-                  if (snapshot.hasError) {
-                    return Text('Error: ${snapshot.error}');
-                  }
-
-                  if (snapshot.hasData) {
-                    final chats = snapshot.data!;
-                    return Expanded(
-                      child: ListView.builder(
-                        itemCount: chats.length,
-                        itemBuilder: (context, index) {
-                          final message = chats[index];
-                          // Display the chat message details (e.g., sender, message, timestamp)
-                          return  RecipientTile(otherUser: message!.recipientId, latestMsg: message!.message, timestamp: message.timestamp);
-                        },
-                      ),
-                    );
-                  }
-
-                  // Handle loading state (optional)
-                  return const CircularProgressIndicator(
-                    color: Colors.redAccent,
-                  );
-                },
-              ),
-
-
-            ],
-          )
-
-      ),
-
+    StreamBuilder<List<ChatMessage>>(
+    stream: getChatsStream(),
+    builder: (context, snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting) {
+    return Center(
+    child: Text("Loading Messages..."),
     );
+    }
+
+    if (snapshot.hasError) {
+    return Center(
+    child: Text('Error: ${snapshot.error}'),
+    );
+    }
+
+    if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+    final chats = snapshot.data!;
+
+    return Expanded(
+    child: ListView.builder(
+    itemCount: chats.length,
+    itemBuilder: (context, index) {
+    final message = chats[index];
+    // Display the chat message details (e.g., sender, message, timestamp)
+    return RecipientTile(
+    otherUser: message.recipientId,
+    latestMsg: message.message,
+    timestamp: message.timestamp,
+    );
+    },
+    ),
+    );
+    }
+
+    // Handle empty state
+    return Center(
+    child: Container(
+    padding: EdgeInsets.all(30),
+    child: Text(
+    "You currently have no messages, start by sending a 'Hi'",
+    textAlign: TextAlign.center,
+    ),
+    ),
+    );
+    },
+
+    )])));
   }
   Stream<List<ChatMessage>> getChatsStream() async* {
     final chats = <ChatMessage>[];
     final querySnapshot = await FirebaseFirestore.instance.collection("chats").get();
-    final filteredMessagesCollections = querySnapshot.docs.where((messageCollection) => messageCollection.id.contains(user!.uid)).toList();
+    final filteredMessagesCollections = querySnapshot.docs.where((messageCollection) => messageCollection.id.contains(user!.uid));
+    print(filteredMessagesCollections.length);
 
     for (var messageCollection in filteredMessagesCollections) {
-      final latestMessageStream = messageCollection.reference
-          .collection('messages')
-          .orderBy('timestamp', descending: true)
-          .limit(1)
-          .snapshots(); // Create a stream for the latest message
+      final latestMessageSnapshot = await messageCollection.reference.collection("messages").orderBy('timestamp', descending: true).get();
 
-      // Listen to the latest message stream
-      await for (var latestMessageSnapshot in latestMessageStream) {
-        if (latestMessageSnapshot.docs.isNotEmpty) {
-          final latestMessageDoc = latestMessageSnapshot.docs.first;
-          final latestMessage = latestMessageDoc.data();
-          final timestamp = (latestMessage['timestamp'] as Timestamp)?.toDate();
+      if (latestMessageSnapshot.docs.isNotEmpty) {
+        final latestMessageDocs = latestMessageSnapshot.docs;
+        print(latestMessageDocs.length);
+        for (var data in latestMessageDocs) {
+          final latestMessageDoc = data.data();
+          final timestamp = (latestMessageDoc['timestamp'] as Timestamp).toDate();
 
           final chat = ChatMessage(
-              recipientId: latestMessage['receiverId'],
-              senderId: latestMessage['senderId'],
-              timestamp: timestamp!,
-              message: latestMessage['message']
+            recipientId: latestMessageDoc['receiverId'],
+            senderId: latestMessageDoc['senderId'],
+            timestamp: timestamp,
+            message: latestMessageDoc['message'],
           );
           chats.add(chat);
         }
@@ -182,7 +191,8 @@ class _ChatPageState extends State<ChatPage> {
     }
     yield chats; // Emit the initial list of chat messages
   }
-  // Future<void> buildChatMessagesList()async{
+
+// Future<void> buildChatMessagesList()async{
   //
   //   final querySnapshot = await FirebaseFirestore.instance.collection("chats").get();
   //   final filteredMessagesCollections = querySnapshot.docs.where((messageCollection) => messageCollection.id.contains(user!.uid)).toList();

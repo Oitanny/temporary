@@ -273,10 +273,9 @@ class _SignUpFormState extends State<SignUpForm> {
                     ),
                     onPressed: ()async {
                       print("Continue with Google");
-                      String x= await signInWithGoogle();
-                      print("Value of X:$x");
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Google Sign Up Succesful, Fill Profile to Proceed")));
-                      Navigator.push(context, MaterialPageRoute(builder: (context)=>ProfileFillForm(email: x, isEditing: false)));
+                      await signInWithGoogle();
+
+                      // Navigator.push(context, MaterialPageRoute(builder: (context)=>ProfileFillForm(email: x, isEditing: false)));
 
 
                     },
@@ -359,17 +358,80 @@ class _SignUpFormState extends State<SignUpForm> {
     RegExp regex = RegExp(r"@[Bb][Mm][Uu]\.edu\.in$");
     return regex.hasMatch(email);
   }
-  Future<String> signInWithGoogle() async {
-    final GoogleSignInAccount? gUser =await  GoogleSignIn().signIn();
-    final GoogleSignInAuthentication gAuth=await gUser!.authentication;
-    final credential=GoogleAuthProvider.credential(
-      accessToken: gAuth.accessToken,
-      idToken: gAuth.idToken,
-    );
-    print(credential);
-    await FirebaseAuth.instance.signInWithCredential(credential);
-    return gUser.email;
+  // Future<String> signInWithGoogle() async {
+  //   final GoogleSignInAccount? gUser =await  GoogleSignIn().signIn();
+  //   final GoogleSignInAuthentication gAuth=await gUser!.authentication;
+  //   final credential=GoogleAuthProvider.credential(
+  //     accessToken: gAuth.accessToken,
+  //     idToken: gAuth.idToken,
+  //   );
+  //   print(credential);
+  //   await FirebaseAuth.instance.signInWithCredential(credential);
+  //   return gUser.email;
+  //
+  // }
 
+  Future<bool> hasUserSignedInWithGoogle(String email) async {
+    try {
+      // Attempt to fetch sign-in methods for the email address
+      final methods = await FirebaseAuth.instance.fetchSignInMethodsForEmail(email);
+
+      // Check if 'google.com' is present, indicating a Google sign-in
+      return methods.contains('google.com');
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'invalid-email') {
+        print('Invalid email format provided.');
+      } else {
+        print('Error checking sign-in methods: ${e.code}');
+      }
+      return false; // Handle error, assuming no Google sign-in
+    }
+  }
+
+  Future<void> signInWithGoogle() async {
+    await GoogleSignIn().signOut();
+    await FirebaseAuth.instance.signOut();
+
+    try {
+      // Trigger Google Sign-In flow
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+
+      if (googleUser != null) {
+        final email = googleUser.email!; // Access the email address
+
+        // Check if user has already signed in with this Google account
+        final hasPreviouslySignedUp = await hasUserSignedInWithGoogle(email);
+
+        if (hasPreviouslySignedUp) {
+          // User has already signed up with this Google account
+          print('Welcome back, $email!');
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("User with this email already exists, considering log-in")));
+        } else {
+          // User is signing up for the first time with this Google account
+          print('Welcome, $email!');
+          // Handle new user logic (e.g., create user account in database)
+          final GoogleSignInAuthentication gAuth=await googleUser!.authentication;
+          final credential=GoogleAuthProvider.credential(
+            accessToken: gAuth.accessToken,
+            idToken: gAuth.idToken,
+          );
+          print(credential);
+          await FirebaseAuth.instance.signInWithCredential(credential).then((value){
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Google Sign Up Succesful, Fill Profile to Proceed")));
+
+          });
+
+          Navigator.push(context, MaterialPageRoute(builder: (context)=>ProfileFillForm(email: googleUser.email, isEditing: false)));
+        }
+
+        // Proceed with sign-in using the Google credential (optional)
+        // ...
+      } else {
+        print('Sign-in cancelled by user.');
+      }
+    } on FirebaseAuthException catch (e) {
+      print('Error signing in with Google: ${e.code}');
+    }
   }
 
 

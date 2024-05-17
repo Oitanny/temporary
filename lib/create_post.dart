@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +11,8 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:sociio/Home.dart';
 import 'package:sociio/cacheBuilder/userProvider.dart';
-import 'package:sociio/models/user_model.dart';
+import 'package:sociio/chats/services/notification_service.dart';
+import 'package:sociio/models/user_model.dart' as UserModel;
 import 'package:sociio/navigation.dart';
 
 
@@ -33,7 +35,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
   DateTime? selectedDate;
   TimeOfDay? selectedTime;
-  User? user;
+  UserModel.User? user;
 
   @override
   void didChangeDependencies() {
@@ -356,7 +358,20 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   catch(e){
     print("Error occured: \n${e}" );
   }
+    Future<void> saveTokenToDatabase(String token) async {
+      final user = FirebaseAuth.instance.currentUser;
 
+      if (user != null) {
+        final userDoc = FirebaseFirestore.instance.collection('userTokens').doc(user.uid);
+
+        await userDoc.set({
+          'token': token,
+          'createdAt': FieldValue.serverTimestamp(), // optional
+          'platform': Platform.operatingSystem // optional
+        });
+      }
+    }
+// sendNotification("New Event", "hello");
 
   }
 

@@ -98,6 +98,7 @@ class _PostWidgetState extends State<PostWidget> {
                       ),
                     ),
                     SizedBox(width: 8),
+
                     Column(
                       mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -120,12 +121,13 @@ class _PostWidgetState extends State<PostWidget> {
                 const SizedBox(height:12),
                 Column(
                   children: [
+                    Visibility(child: Text(post.title, style:TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
                     Text(
-                      maxLines: _isExpanded ? 3 : 10,
+                      maxLines: _isExpanded ? 10 : 3,
                       overflow: TextOverflow.ellipsis,
                       post.description.toString(),
                       style: TextStyle(
-                          fontSize: 17
+                          fontSize: 16,
                       ),
 
                     ),
@@ -266,12 +268,12 @@ class _PostWidgetState extends State<PostWidget> {
                             onPressed: () async{
                               setState(() {
                                 liked2=!liked2;
-                                if(liked2==false && (likeCount-1)>=0){
+                                if(liked2==false && (liked)==false){
                                   likeCount=post.likes-1;
                                 } else{
                                   likeCount=post.likes+1;
-                                }
-                              });
+
+                              }});
                               bool newLiked = !liked;
                               Provider.of<LikeState>(context, listen: false).setLiked(post.title+post.postedBy, newLiked);
 
@@ -301,6 +303,12 @@ class _PostWidgetState extends State<PostWidget> {
                           setState(() {
                             saved=!saved;
                           });
+                          if(saved==true){
+                             savePost(post.title);
+                          }
+                          else{
+                            removePost(post.title);
+                          }
 
                         },
                         icon:  Icon(saved==true?Icons.bookmark:Icons.bookmark_border),
@@ -325,9 +333,50 @@ class _PostWidgetState extends State<PostWidget> {
 
         }
 
+  Future<void> savePost(String postId) async {
+
+    if (user != null) {
+      // Get a reference to the user's saved posts collection
+      final savedPostsRef = FirebaseFirestore.instance
+          .collection('savedPosts')
+          .doc(user!.uid) // Use user.uid for the document ID
+          .collection('saved');
+
+      // Check if the post is already saved (optional)
+      final savedPostDoc = await savedPostsRef.doc(postId).get();
+      if (savedPostDoc.exists) {
+        print('Post already saved!');
+        return; // Or handle the case where the post is already saved
+      }
+
+      // Create a new document with the post ID in the "saved" array
+      await savedPostsRef.doc(postId).update({
+        'saved': FieldValue.arrayUnion([postId]), // Add the post ID to the array
+      });
+
+      // await savedPostsRef.doc(postId).set({
+      //   'saved': [postId], // Initial array with the post ID
+      // });
+
+      print('Post saved successfully!');
+    } else {
+      print('Error: User is not signed in');
+    }
+  }
+
+  Future<void> removePost(String postId)async{
+    final savedPostsRef = FirebaseFirestore.instance
+        .collection('savedPosts')
+        .doc(user!.uid) // Use user.uid for the document ID
+        .collection('saved');
+    await savedPostsRef.doc(postId).update({
+      'saved': FieldValue.arrayRemove([postId]), // Remove the post ID from the array
+    });
 
 
   }
+  }
+
   int getDifferenceInMinutes(DateTime postDateTime) {
     final now = DateTime.now();
     final difference = now.difference(postDateTime);
@@ -371,6 +420,7 @@ class _PostWidgetState extends State<PostWidget> {
     // Update the like count in Firestore
     await document.reference.update({'likes': newLikes});
   }
+
   Future<User> fetchCreator(String postedBy) async {
     // Reference to the Firestore collection 'users'
     CollectionReference users = FirebaseFirestore.instance.collection('users');

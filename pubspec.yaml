@@ -31,6 +31,8 @@ dependencies:
   url_launcher_plus:
   url_launcher_android:
   http:
+  firebase_messaging:
+  firebase_admin:
 
 
 dev_dependencies:

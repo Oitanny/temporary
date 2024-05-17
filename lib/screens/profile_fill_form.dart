@@ -29,7 +29,7 @@ class _ProfileFillFormState extends State<ProfileFillForm> {
   final TextEditingController _userIdController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneNumberController = TextEditingController();
-  TextEditingController _bioController = TextEditingController(text:"Nothing");
+  TextEditingController _bioController = TextEditingController(text:"");
   File? image=null;
   String? _selectedGender;
   String _selectedCountry = 'Select Country';
@@ -94,7 +94,7 @@ class _ProfileFillFormState extends State<ProfileFillForm> {
                   CircleAvatar(
                   radius: 50,
                     backgroundColor: Colors.grey,
-                    backgroundImage: image==null?AssetImage("assets/Images/no_image.jpg") as ImageProvider:NetworkImage(user!.uavatar),
+                    backgroundImage: image==null?AssetImage("assets/Images/no_image.jpg") as ImageProvider:FileImage(image!) as ImageProvider<Object>?,
                   ),
 
 
